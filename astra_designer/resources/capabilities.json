@@ -1,0 +1,1873 @@
+{
+  "object.resolve@1": {
+    "class": "ObjectResolveAgent",
+    "inputs": {"brief": "task_input"},
+    "outputs": {"object": "business_object"},
+    "parameters": {
+      "type": "object", "additionalProperties": false,
+      "anyOf": [{"required": ["mode_field", "id_field"]}, {"required": ["key_field"]}],
+      "properties": {
+        "key_field": {"type": "string", "minLength": 1},
+        "key_namespace": {"type": "string", "minLength": 1},
+        "require_found": {"type": "boolean"},
+        "mode_field": {"type": "string", "minLength": 1},
+        "id_field": {"type": "string", "minLength": 1},
+        "new_value": {"type": "string", "minLength": 1},
+        "continue_value": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "feedback.read@1": {
+    "class": "ReadFeedbackAgent",
+    "inputs": {},
+    "outputs": {
+      "records": "feedback_records"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "feedback.classify@1": {
+    "class": "ClassifyFeedbackAgent",
+    "inputs": {
+      "records": "feedback_records"
+    },
+    "outputs": {
+      "classified": "classified_feedback"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rules",
+        "fallback"
+      ],
+      "properties": {
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "category",
+              "keywords"
+            ],
+            "properties": {
+              "category": {
+                "type": "string",
+                "minLength": 1
+              },
+              "keywords": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "fallback": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "feedback.count@1": {
+    "class": "CountFeedbackAgent",
+    "inputs": {
+      "classified": "classified_feedback"
+    },
+    "outputs": {
+      "counts": "feedback_counts"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "feedback.report@1": {
+    "class": "ReportFeedbackAgent",
+    "inputs": {
+      "counts": "feedback_counts"
+    },
+    "outputs": {
+      "report": "report_path"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "recommendations"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommendations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "llm.transform@1": {
+    "class": "ConfiguredLLMAgent",
+    "inputs": {},
+    "outputs": {},
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt",
+        "input_schemas",
+        "output_schemas"
+      ],
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "pattern": "\\S",
+          "maxLength": 20000
+        },
+        "input_schemas": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "output_schemas": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "max_input_chars": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200000
+        },
+        "optional_inputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 131072,
+          "description": "本 Agent 单次回复的最大 token 数；一次要写很长的内容（如整章正文）时调大"
+        }
+      }
+    }
+  },
+  "document.write@1": {
+    "class": "DocumentWriterAgent",
+    "inputs": {},
+    "outputs": {},
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_schema",
+        "formats",
+        "filename"
+      ],
+      "properties": {
+        "key_namespace": {"type": "string", "minLength": 1},
+        "key_field": {"type": "string", "minLength": 1},
+        "object_context": {"type": "boolean", "description": "使用 object.resolve 的 object 输入统一状态和文档归档身份"},
+        "input_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "title_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)+$"
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "txt",
+              "md",
+              "docx",
+              "pdf"
+            ]
+          }
+        },
+        "format_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^(?:[^\\\\/:*?\"<>|{}]|\\{[^{}]*\\})+$",
+          "description": "文件名（不含扩展名）；可含 {task_input 字段} 与 {/被写入数据中的 JSON 指针}，如 {title}_第{/chapter_number}章"
+        },
+        "section_title_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "section_text_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "per_item": {
+          "type": "boolean",
+          "description": "text_path 指向数组时每项写一个文件（如每章一个文件），filename 中的 {/字段} 取该项"
+        },
+        "accumulate": {
+          "type": "boolean",
+          "description": "把本次文本追加到以前各次运行写过的同名文稿之后（如全书），保存在 output/documents"
+        },
+        "reset_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "reset_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "table.read@1": {
+    "class": "TableReadAgent",
+    "inputs": {
+      "brief": "task_input"
+    },
+    "outputs": {
+      "rows": "table_rows"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path_field"
+      ],
+      "properties": {
+        "path_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "sheet": {
+          "type": "string",
+          "minLength": 1
+        },
+        "columns": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "max_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "header_row": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "表头在第几行（从 1 开始）；省略时自动查找"
+        },
+        "source_column": {
+          "type": "string",
+          "minLength": 1,
+          "description": "path_field 为多个文件时，记录每行来自哪个文件的列名（默认“来源文件”）"
+        }
+      }
+    }
+  },
+  "table.write@1": {
+    "class": "TableWriteAgent",
+    "inputs": {},
+    "outputs": {},
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_schema",
+        "formats",
+        "filename"
+      ],
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rows_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "csv",
+              "xlsx"
+            ]
+          }
+        },
+        "sheet": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 31,
+          "pattern": "^[^\\[\\]:*?/\\\\]+$"
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^(?:[^\\\\/:*?\"<>|{}]|\\{[^{}]*\\})+$",
+          "description": "文件名（不含扩展名）；可含 {task_input 字段} 与 {/被写入数据中的 JSON 指针}，如 {title}_第{/chapter_number}章"
+        },
+        "sheets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 31,
+                "pattern": "^[^\\[\\]:*?/\\\\]+$"
+              },
+              "rows_path": {
+                "type": "string",
+                "pattern": "^(/[^/]+)*$"
+              },
+              "columns": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "写成一个 xlsx 的多个工作表，每个工作表取 rows 数据中的一个数组"
+        }
+      }
+    }
+  },
+  "http.request@1": {
+    "class": "HttpRequestAgent",
+    "inputs": {},
+    "outputs": {
+      "response": "http_response"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "url"
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://[^/{}\\s]+(/\\S*)?$",
+          "description": "固定主机；路径或查询可含 {task_input 字段} 和 {env:环境变量名}（密钥）"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "请求头；密钥写成 {env:环境变量名}"
+        },
+        "auth_env": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+        },
+        "auth_scheme": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9-]{0,31}$"
+        },
+        "body_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 300
+        },
+        "ok_statuses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 300,
+            "maximum": 599
+          },
+          "description": "这些状态码作为正常结果交给下一步（如 404 表示查无此人），不算失败"
+        },
+        "each_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "body 数据中的数组：每项发一次请求（如逐个通知客户），url 中的 {/字段} 取该项；输出为逐条结果数组"
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "each_path 最多处理的条数（默认 200）"
+        },
+        "page_param": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,31}$",
+          "description": "分页查询参数名（如 page）：从第 1 页起逐页请求，直到某页为空"
+        },
+        "first_page": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "items_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "分页时每页响应中条目数组的位置，如 /data/items"
+        },
+        "max_pages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "body_format": {
+          "enum": [
+            "json",
+            "form"
+          ],
+          "description": "请求体格式：json（默认）或 form（表单）"
+        }
+      }
+    }
+  },
+  "llm.map@1": {
+    "class": "ConfiguredLLMAgent",
+    "inputs": {},
+    "outputs": {},
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt",
+        "input_schemas",
+        "output_schemas",
+        "items_port"
+      ],
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "pattern": "\\S",
+          "maxLength": 20000
+        },
+        "input_schemas": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "output_schemas": {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "items_port": {
+          "type": "string",
+          "minLength": 1
+        },
+        "items_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "previous_results": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "max_input_chars": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200000
+        },
+        "optional_inputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 131072,
+          "description": "本 Agent 单次回复的最大 token 数；一次要写很长的内容（如整章正文）时调大"
+        }
+      }
+    }
+  },
+  "state.load@1": {
+    "class": "StateLoadAgent",
+    "inputs": {},
+    "outputs": {
+      "state": "stored_state"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key_namespace": {"type": "string", "minLength": 1},
+        "object_context": {"type": "boolean", "description": "使用 object.resolve 的 object 输入统一状态和文档归档身份"},
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9一-鿿][A-Za-z0-9_\\-一-鿿]{0,63}$"
+        },
+        "key_field": {
+          "description": "已有外部业务编号所在的 task_input 字段，内部解析为对象 ID；缺失时不从模型补造",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "value_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reset_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "reset_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "require_found": {
+          "type": "boolean",
+          "description": "不是从头开始（reset）时，找不到保存的状态就报错并列出已有的键，而不是当作新的开始；用于凭编号继续"
+        }
+      }
+    }
+  },
+  "state.save@1": {
+    "class": "StateSaveAgent",
+    "inputs": {},
+    "outputs": {
+      "record": "state_record"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_schema"
+      ],
+      "properties": {
+        "key_namespace": {"type": "string", "minLength": 1},
+        "object_context": {"type": "boolean", "description": "使用 object.resolve 的 object 输入统一状态和文档归档身份"},
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9一-鿿][A-Za-z0-9_\\-一-鿿]{0,63}$"
+        },
+        "key_field": {
+          "description": "已有外部业务编号所在的 task_input 字段，内部解析为对象 ID；缺失时不从模型补造",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "value_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "append_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)+$",
+          "description": "value 中的数组字段（如 /chapter_summaries）：模型只给本次新增的条目，程序追加到已保存的列表"
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "description": "append_path 列表只保留最近这么多条"
+        },
+        "reset_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "reset_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "key_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)+$",
+          "description": "仅在 object_context=true 时，将程序持有的 object.id 回填到业务数据的字符串字段；不从模型输出生成身份"
+        }
+      }
+    }
+  },
+  "document.read@1": {
+    "class": "DocumentReadAgent",
+    "inputs": {
+      "brief": "task_input"
+    },
+    "outputs": {
+      "document": "document_text"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path_field"
+      ],
+      "properties": {
+        "path_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "chunk_chars": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 50000
+        },
+        "max_chars": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2000000
+        },
+        "ocr": {
+          "type": "boolean",
+          "description": "扫描件和图片自动做文字识别（默认开启，需安装 rapidocr_onnxruntime 与 pypdfium2）"
+        }
+      }
+    }
+  },
+  "web.fetch@1": {
+    "class": "WebFetchAgent",
+    "inputs": {},
+    "outputs": {
+      "page": "web_page"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https?://\\S+$"
+        },
+        "url_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "chunk_chars": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 50000
+        },
+        "max_chars": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2000000
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 120
+        },
+        "many": {
+          "type": "boolean",
+          "description": "抓取多个网页：url_field 为 string 数组或用 urls；输出 page 为 pages、text、chunks（每段带 url）"
+        },
+        "urls": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "pattern": "^https?://\\S+$"
+          }
+        },
+        "max_pages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    }
+  },
+  "table.compute@1": {
+    "class": "TableComputeAgent",
+    "inputs": {},
+    "outputs": {
+      "result": "table_rows"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_schema",
+        "steps"
+      ],
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rows_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "lookup_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lookup_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "where"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "filter"
+                  },
+                  "where": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "column",
+                        "cmp"
+                      ],
+                      "properties": {
+                        "column": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "cmp": {
+                          "enum": [
+                            "eq",
+                            "ne",
+                            "gt",
+                            "gte",
+                            "lt",
+                            "lte",
+                            "contains",
+                            "in",
+                            "empty",
+                            "not_empty"
+                          ]
+                        },
+                        "value": {}
+                      }
+                    }
+                  },
+                  "mode": {
+                    "enum": [
+                      "all",
+                      "any"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "column",
+                  "expr"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "derive"
+                  },
+                  "column": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expr": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "by"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "sort"
+                  },
+                  "by": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "column"
+                      ],
+                      "properties": {
+                        "column": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "desc": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "aggregates"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "group"
+                  },
+                  "by": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "aggregates": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "fn",
+                        "as"
+                      ],
+                      "properties": {
+                        "column": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "fn": {
+                          "enum": [
+                            "sum",
+                            "avg",
+                            "min",
+                            "max",
+                            "count",
+                            "count_distinct"
+                          ]
+                        },
+                        "as": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "columns"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "select"
+                  },
+                  "columns": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "rename": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "n"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "limit"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "on"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "join"
+                  },
+                  "on": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "how": {
+                    "enum": [
+                      "left",
+                      "inner"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op",
+                  "fn",
+                  "as"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "window"
+                  },
+                  "fn": {
+                    "enum": [
+                      "cumsum",
+                      "share",
+                      "rank",
+                      "total",
+                      "row_number"
+                    ]
+                  },
+                  "column": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "by": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "as": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "desc": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op"
+                ],
+                "properties": {
+                  "op": {
+                    "const": "append"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "flow.route@1": {
+    "class": "RouteAgent",
+    "inputs": {},
+    "outputs": {
+      "decision": "route_decision"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_schema",
+        "cases"
+      ],
+      "properties": {
+        "subject_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "goto"
+            ],
+            "properties": {
+              "when": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "op"
+                ],
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^(/[^/]+)*$"
+                  },
+                  "op": {
+                    "enum": [
+                      "equals",
+                      "not_equals",
+                      "gt",
+                      "gte",
+                      "lt",
+                      "lte",
+                      "is_true",
+                      "is_false",
+                      "in",
+                      "empty",
+                      "not_empty"
+                    ]
+                  },
+                  "value": {},
+                  "value_path": {
+                    "type": "string",
+                    "pattern": "^(/[^/]+)+$"
+                  },
+                  "value_field": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                  }
+                }
+              },
+              "all": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "op"
+                  ],
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "pattern": "^(/[^/]+)*$"
+                    },
+                    "op": {
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "is_true",
+                        "is_false",
+                        "in",
+                        "empty",
+                        "not_empty"
+                      ]
+                    },
+                    "value": {},
+                    "value_path": {
+                      "type": "string",
+                      "pattern": "^(/[^/]+)+$"
+                    },
+                    "value_field": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                    }
+                  }
+                }
+              },
+              "any": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "op"
+                  ],
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "pattern": "^(/[^/]+)*$"
+                    },
+                    "op": {
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "is_true",
+                        "is_false",
+                        "in",
+                        "empty",
+                        "not_empty"
+                      ]
+                    },
+                    "value": {},
+                    "value_path": {
+                      "type": "string",
+                      "pattern": "^(/[^/]+)+$"
+                    },
+                    "value_field": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                    }
+                  }
+                }
+              },
+              "goto": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "when"
+                ]
+              },
+              {
+                "required": [
+                  "all"
+                ]
+              },
+              {
+                "required": [
+                  "any"
+                ]
+              }
+            ]
+          }
+        },
+        "max_loops": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "on_exhausted": {
+          "enum": [
+            "continue",
+            "fail"
+          ]
+        }
+      }
+    }
+  },
+  "fs.scan@1": {
+    "class": "FileScanAgent",
+    "inputs": {},
+    "outputs": {
+      "files": "file_entries"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "roots_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "extensions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "min_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "max_files": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200000
+        },
+        "include_hidden": {
+          "type": "boolean",
+          "description": "也列出 .git、Thumbs.db 等版本库与系统文件（默认不列）"
+        },
+        "min_age_days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "只列出至少这么多天未修改的文件"
+        }
+      }
+    }
+  },
+  "fs.cleanup@1": {
+    "class": "FileCleanupAgent",
+    "inputs": {},
+    "outputs": {
+      "result": "cleanup_result"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_roots"
+      ],
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rows_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "path_column": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_roots": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "mode": {
+          "enum": [
+            "dry_run",
+            "quarantine",
+            "delete",
+            "restore"
+          ]
+        },
+        "execute_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "execute_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "string",
+              "boolean",
+              "number"
+            ]
+          }
+        },
+        "keep_newer_than_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        },
+        "max_files": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "max_total_mb": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "remove_empty_dirs": {
+          "type": "boolean",
+          "description": "处理后删除因此变空的子文件夹（不删允许目录本身）"
+        },
+        "purge_after_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "description": "清理时一并永久删除隔离超过这么多天的批次（同样先列出、确认后执行）"
+        }
+      }
+    }
+  },
+  "human.review@1": {
+    "class": "HumanReviewAgent",
+    "inputs": {},
+    "outputs": {
+      "review": "review_decision"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_schema"
+      ],
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "要给人看的正文位置；省略时显示整个数据"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "提示语，如“请审阅第 N 章草稿”"
+        },
+        "excerpt_chars": {
+          "type": "integer",
+          "minimum": 200,
+          "maximum": 20000
+        },
+        "images_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "content 中要给人看的图片路径（string 或 string 数组）；审阅 image_files 时自动取全部图片"
+        }
+      }
+    }
+  },
+  "email.send@1": {
+    "class": "EmailSendAgent",
+    "inputs": {},
+    "outputs": {
+      "sent": "email_record"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_schema",
+        "subject"
+      ],
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$"
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "主题，可含 {task_input 字段} 与 {/正文数据中的字段}"
+        },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "pattern": "^[^@\\s<>]+@[^@\\s<>]+\\.[^@\\s<>]+$"
+          }
+        },
+        "to_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "cc": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "pattern": "^[^@\\s<>]+@[^@\\s<>]+\\.[^@\\s<>]+$"
+          }
+        },
+        "cc_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "attachments_schema": {
+          "enum": [
+            "document_files",
+            "document_file_lists",
+            "image_files"
+          ],
+          "description": "附件：本次运行写出的文件（document.write/table.write 的 files，或 image.generate/image.edit 的 images）"
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 120
+        }
+      }
+    }
+  },
+  "web.search@1": {
+    "class": "WebSearchAgent",
+    "inputs": {},
+    "outputs": {
+      "results": "search_results"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "固定搜索词，可含 {task_input 字段}"
+        },
+        "query_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "每次运行输入的搜索词（string 或 string 数组）"
+        },
+        "queries_schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "由上游生成搜索词时，topic 端口的 Schema"
+        },
+        "queries_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "topic 数据中搜索词（string 或 string 数组）的位置"
+        },
+        "max_queries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "max_results": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "fetch_pages": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "读取排名靠前的几个网页全文（0 只要摘要）"
+        },
+        "page_chars": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 200000
+        },
+        "chunk_chars": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 50000
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 120
+        }
+      }
+    }
+  },
+  "image.generate@1": {
+    "class": "ImageGenerateAgent",
+    "inputs": {},
+    "outputs": {
+      "images": "image_files"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "提示词来自上游数据时，content 端口的 Schema"
+        },
+        "prompt_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "content 中提示词的位置：一条提示词（string）、多条（string 数组）或对象数组（每项的 prompt_key 字段是提示词）"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "description": "固定提示词模板，可含 {task_input 字段}"
+        },
+        "prompt_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "每次运行输入的提示词（string 或 string 数组）"
+        },
+        "prompt_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "prompt_path 指向对象数组时，提示词所在的键，默认 prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "16:9",
+            "9:16"
+          ],
+          "description": "画面比例，程序换算成模型推荐的 2K 尺寸"
+        },
+        "aspect_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "对象数组中每项自带画面比例的键（如上游模型按用途选的比例）"
+        },
+        "resolution": {
+          "enum": [
+            "2k",
+            "1k"
+          ],
+          "description": "2k 为推荐尺寸；1k 每边减半，出草图更快"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "description": "每条提示词生成几张（候选图）"
+        },
+        "negative_prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "description": "固定随机种子，便于复现"
+        },
+        "style": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "附加在每条提示词后的统一风格描述"
+        },
+        "transparent": {
+          "type": "boolean",
+          "description": "透明背景（RGBA），用于 Logo、贴纸、抠图"
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^(?:[^\\\\/:*?\"<>|{}]|\\{[^{}]*\\})+$",
+          "description": "文件名（不含扩展名），可含 {task_input 字段}；提示词为对象数组时可含 {/该项的字段}"
+        },
+        "max_images": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "description": "本步骤一次运行最多生成的图片数，默认 20"
+        }
+      }
+    }
+  },
+  "image.edit@1": {
+    "class": "ImageEditAgent",
+    "inputs": {},
+    "outputs": {
+      "images": "image_files"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "input_schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "提示词来自上游数据时，content 端口的 Schema"
+        },
+        "prompt_path": {
+          "type": "string",
+          "pattern": "^(/[^/]+)*$",
+          "description": "content 中提示词的位置：一条提示词（string）、多条（string 数组）或对象数组（每项的 prompt_key 字段是提示词）"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "description": "固定编辑指令模板，可含 {task_input 字段}，如“把背景换成纯白色”"
+        },
+        "prompt_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "每次运行输入的提示词（string 或 string 数组）"
+        },
+        "prompt_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "prompt_path 指向对象数组时，提示词所在的键，默认 prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "16:9",
+            "9:16"
+          ],
+          "description": "画面比例；省略时保持原图尺寸"
+        },
+        "aspect_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "对象数组中每项自带画面比例的键（如上游模型按用途选的比例）"
+        },
+        "resolution": {
+          "enum": [
+            "2k",
+            "1k"
+          ],
+          "description": "2k 为推荐尺寸；1k 每边减半，出草图更快"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "description": "每条提示词生成几张（候选图）"
+        },
+        "negative_prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "description": "固定随机种子，便于复现"
+        },
+        "style": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "附加在每条提示词后的统一风格描述"
+        },
+        "transparent": {
+          "type": "boolean",
+          "description": "透明背景（RGBA），用于 Logo、贴纸、抠图"
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^(?:[^\\\\/:*?\"<>|{}]|\\{[^{}]*\\})+$",
+          "description": "文件名（不含扩展名），可含 {task_input 字段}；提示词为对象数组时可含 {/该项的字段}"
+        },
+        "max_images": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "description": "本步骤一次运行最多生成的图片数，默认 20"
+        },
+        "image_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "每次运行提交的图片路径（string 或 string 数组）"
+        },
+        "images_schema": {
+          "enum": [
+            "image_files"
+          ],
+          "description": "编辑上游 image.generate / image.edit 生成的图片（images 端口）"
+        },
+        "each_image": {
+          "type": "boolean",
+          "description": "每张图片分别编辑（如批量换背景）；否则全部图片作为参考合成一张（默认最多 4 张）"
+        }
+      }
+    }
+  }
+}

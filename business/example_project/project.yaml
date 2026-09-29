@@ -1,0 +1,30 @@
+name: example_project
+package: business.example_project
+
+distribution:
+  version: 0.1.0
+  runtime: ">=0.1.0"
+  include:
+    - agents
+    - tools
+    - hooks
+    - prompts
+    - data
+    - configs
+
+workflow_config: configs/workflow.yaml
+model_config: configs/model.json
+tools_dir: tools
+hooks_dir: hooks
+
+extensions:
+  - astra_core.extensions.project_tools
+  - astra_core.extensions.project_hooks
+  - astra_core.extensions.workflow_artifacts
+
+paths:
+  data: data
+  prompts: prompts
+  output: output
+
+initial_task: 演示业务项目如何被引擎加载并运行

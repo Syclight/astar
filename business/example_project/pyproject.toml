@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astra-example-project"
+version = "0.1.0"
+description = "A minimal distributable business project for Astra."
+requires-python = ">=3.11"
+
+[tool.setuptools]
+include-package-data = true
+packages = [
+  "business.example_project",
+  "business.example_project.agents",
+  "business.example_project.configs",
+  "business.example_project.tools",
+  "business.example_project.hooks",
+]
+
+[tool.setuptools.package-dir]
+"business.example_project" = "."
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.md", "*.json", "prompts/*.md", "data/*.md", "data/*.json"]

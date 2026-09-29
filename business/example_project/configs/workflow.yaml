@@ -1,0 +1,43 @@
+runtime:
+  agent_packages:
+    - business.example_project.agents
+
+orchestrator:
+  max_retries: 1
+  hook_profile: standard
+  flow:
+    type: serial
+  stage_routing:
+    init: draft
+    draft: review
+    review: end
+
+outputs:
+  output_dir: business/example_project/output
+  structure_figure_path: business/example_project/output/orchestrator_structure.png
+
+agents:
+  - role: draft_writer
+    class: DraftAgent
+    max_retries: 1
+
+  - role: reviewer
+    class: ReviewAgent
+    max_retries: 1
+
+stages:
+  - stage_id: draft
+    agents:
+      - draft_writer
+    next_stage: review
+    flow:
+      type: serial
+    message: "示例第一步：生成一份业务草稿"
+
+  - stage_id: review
+    agents:
+      - reviewer
+    next_stage: end
+    flow:
+      type: serial
+    message: "示例第二步：审阅业务草稿"

@@ -1,0 +1,85 @@
+{
+  "astra.native@1": {
+    "title": "Astra 确定性 Agent",
+    "status": "generatable",
+    "adapter": "native",
+    "supports": [
+      "deterministic_transform"
+    ],
+    "requires": [],
+    "dependencies": [],
+    "limitations": [
+      "不调用模型"
+    ],
+    "contract": {
+      "input": "mapped_json",
+      "output": "status_and_mapped_data",
+      "recovery": "astra_checkpoint",
+      "usage": "not_applicable"
+    }
+  },
+  "astra.configured@1": {
+    "title": "Astra 配置型 LLM Agent",
+    "status": "generatable",
+    "adapter": "configured",
+    "supports": [
+      "text_generation",
+      "structured_output"
+    ],
+    "requires": [
+      "model_base_url",
+      "model_name"
+    ],
+    "dependencies": [],
+    "limitations": [
+      "不调用工具",
+      "不提供自主工具循环"
+    ],
+    "contract": {
+      "input": "mapped_json",
+      "output": "schema_validated_json",
+      "recovery": "astra_checkpoint",
+      "usage": "provider_optional"
+    }
+  },
+  "qwen.agent@1": {
+    "title": "Qwen Agent 运行时适配器",
+    "status": "runtime_only",
+    "adapter": null,
+    "supports": [
+      "runtime_adapter"
+    ],
+    "requires": [
+      "qwen_runtime_configuration"
+    ],
+    "dependencies": [
+      "qwen-agent"
+    ],
+    "limitations": [
+      "尚无 Designer 配置型生成适配器，需手写 Agent"
+    ],
+    "contract": {
+      "input": "adapter_defined",
+      "output": "adapter_defined",
+      "recovery": "astra_checkpoint",
+      "usage": "adapter_defined"
+    }
+  },
+  "openai.agent@1": {
+    "title": "OpenAI Agent 预留适配器",
+    "status": "planned",
+    "adapter": null,
+    "supports": [],
+    "requires": [],
+    "dependencies": [],
+    "limitations": [
+      "尚未实现；兼容模型接口不等于 Agent 框架"
+    ],
+    "contract": {
+      "input": "undefined",
+      "output": "undefined",
+      "recovery": "undefined",
+      "usage": "undefined"
+    }
+  }
+}

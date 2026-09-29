@@ -1,0 +1,13 @@
+{
+  "base_url": "",
+  "model": "",
+  "api_key_env": "ASTRA_RUNTIME_API_KEY",
+  "timeout": 300,
+  "max_output_tokens": 8192,
+  "token_parameter": "max_tokens",
+  "stream": true,
+  "response_format": "text",
+  "reasoning_effort": "auto",
+  "max_response_bytes": 256000000,
+  "max_content_bytes": 16000000
+}

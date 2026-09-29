@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astra-runtime"
+version = "0.1.0"
+description = "Configuration-driven Agent workflow runtime"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=6,<7",
+    "json5>=0.9,<1",
+    "matplotlib>=3.8,<4",
+    "jsonschema>=4.18,<5",
+    "prompt-toolkit>=3.0.50,<4",
+    "openpyxl>=3.1,<4",
+    "reportlab>=4,<5",
+    "pypdf>=4,<7",
+]
+
+[tool.uv]
+package = true
+
+[project.optional-dependencies]
+qwen = ["qwen-agent"]
+
+[project.scripts]
+astra = "astra_core.cli:main"
+astra-designer = "astra_designer.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["astra", "astra_core*", "astra_qwen*", "astra_openai*", "astra_designer*"]
+
+[tool.setuptools.package-data]
+"astra_designer.resources" = ["*.json", "*.tpl", "*.md", "examples/*.json"]

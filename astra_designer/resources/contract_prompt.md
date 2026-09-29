@@ -1,0 +1,6 @@
+输入与交付契约（业务团队必须有明确的输入和交付成果）：
+- task_input 是每次运行的资料结构：自包含 JSON Schema，type=object；properties 中每个字段有明确 type 和面向用户的 description，可加 enum、minLength 等约束；required 至少一项，列出任何时候都必填的资料；additionalProperties=false。不把举例中的产品名写成 default 或 const。有模式或类型选项、某些资料只在其中一种选项下必填时（如新建时必须给题材，续写时必须给作品编号和上次的章节），选项字段放进 required 并用 enum 列出取值，按选项才必填的字段不放进 required，而是写进 x-astra-required-when，如 [{"field": "mode", "values": ["new"], "required": ["genre"]}, {"field": "mode", "values": ["continue"], "required": ["work_id"]}]；运行时按用户选的选项追问对应字段。真正可以不填的字段在 description 中写明“可选”。
+- interaction 是执行前的接单规则：on_missing=ask（资料缺失或不合法时请用户补充）或 error（直接失败），confirm_before_run 为布尔值，questions 是字段名到简短提问的映射。它确认的是本单资料，不是设计方案。它只管执行前；用户需要运行中审稿或审批时，由团队中的人工审阅步骤实现（可按意见返工），问清在哪一步审、不通过时怎么处理。
+- deliverables 列出每次运行交付的成果，覆盖全部 output 需求：id 为 DEL-001 等；name 是成果名称；description 写清包含哪些内容；form=file 表示交付文件，formats 从 txt、md、docx、pdf、csv、xlsx、image 中遵循用户指定或按公共默认规则选择，不要求用户先认可格式；form=data 表示运行记录中的结构化结果；form=action 表示外部状态改变，此时 evidence 写明如何验证；requirement_ids 引用对应的真实需求。默认格式不需单独的需求条目或来源引用。不写“待定”；只有用户要求每次选择的偏好和业务必需的资料才放进 task_input，不把设计器可以决定的细节变成运行时问卷。
+- 用户希望每次运行时选择文件格式时，task_input 增加 output_format 字段，enum 取用户认可的格式，deliverables 的 formats 列出同样的格式。
+- 输入或交付成果说不清时，先向用户提问，不用笼统描述代替。

@@ -1,0 +1,19 @@
+{
+  "purpose": "完整的最小结构示例，不是当前用户需求或已确认快照。展示每单输入、端口映射和业务输出验收；名称与规则不得照搬。",
+  "request": "建立可复用文本摘要项目，每次提供正文，返回非空摘要文本；不保存文件或发送通知。",
+  "explanation": "输入由运行前接单提供，不需要读取文件的 Agent。单个摘要阶段即可，无需虚构角色；结构验收不能证明摘要语义质量。已确认需求模式下 task_input/interaction 由程序注入，traceability 和 team_assignment 必须按实际快照另行生成。",
+  "blueprint": {
+    "version": "1",
+    "project": {"name": "text_summary", "goal": "建立可复用文本摘要项目，每次提供正文，返回非空摘要文本；不保存文件或发送通知。"},
+    "inputs": {},
+    "task_input": {"type": "object", "properties": {"text": {"type": "string", "minLength": 1, "description": "需要摘要的正文"}}, "required": ["text"], "additionalProperties": false},
+    "interaction": {"on_missing": "ask", "confirm_before_run": false, "questions": {"text": "请提供需要摘要的正文。"}},
+    "schemas": {"summary_text": {"type": "string", "minLength": 1}},
+    "stages": [{"id": "summarize", "agents": [{
+      "id": "summarizer", "capability": "llm.transform@1",
+      "inputs": {"brief": "task_input"}, "outputs": {"summary": "summary"},
+      "parameters": {"prompt": "根据 brief.text 提炼摘要，保留主要事实，不添加原文没有的信息。返回非空 summary 字符串。", "input_schemas": {"brief": "task_input"}, "output_schemas": {"summary": "summary_text"}}
+    }]}],
+    "acceptance": [{"path": "/data/summary", "op": "matches_schema", "value": {"type": "string", "minLength": 1}}]
+  }
+}
